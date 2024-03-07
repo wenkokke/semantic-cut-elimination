@@ -18,21 +18,34 @@ mutual
   data _⟶_ : {ρ : pol} → fml ρ → fml ρ → Set where
     `axiom    : ∀ {a} → (+at a `⊝ -at a) ⟶ `I
 
-    `tidy     : (`I `& `I) ⟶ `I
-    `switch   : ∀ {p q r} → ((p `⊗ q) `⊝ r) ⟶ (p `⊗ (q `⊝ r))
+    `up       : ∀ {p q} → rct q → (`↑ p `⅋ q) ⟶ `↑ (p `⊝ q)
+    `switchl  : ∀ {p q r} → rct r → (p `⊗ (q `⊝ r)) ⟶ ((p `⊝ r) `⊗ q)
+    `switchr  : ∀ {p q r} → rct r → (p `⊗ (q `⊝ r)) ⟶ ((p `⊗ q) `⊝ r)
     `sequence : ∀ {p q r s} → ((p `▷ q) `⅋ (r `▷ s)) ⟶ ((p `⅋ r) `▷ (q `⅋ s))
+    `down     : ∀ {p q} → rct q → `↓ p `⊝ q ⟶ `↓ (p `⅋ q)
     `left     : ∀ {p q} → (p `⊕ q) ⟶ p
     `right    : ∀ {p q} → (p `⊕ q) ⟶ q
     `external : ∀ {p q r} → ((p `& q) `⅋ r) ⟶ ((p `⅋ r) `& (q `⅋ r))
     `medial   : ∀ {p q r s} → ((p `▷ q) `& (r `▷ s)) ⟶ ((p `& r) `▷ (q `& s))
+    `tidy-↑↓  : `↓ `↑ `I ⟶ `I
+    `tidy-⊗   : ∀ {p q} → (`I `⊗ `I) ⟶ `↓ `↑ (p `⊗ q)
+    `tidy-&   : (`↑ `I `& `↑ `I) ⟶ `↑ `I
 
-  --  _⟨`⊗_      : ∀ {p p'} → p ⟶[ ρ ] p' → (q : fml +) → (p `⊗ q) ⟶ (p' `⊗ q)
+    _⟨`⊗_      : ∀ {p p'} → p ⟶ p' → (q : fml +) → (p `⊗ q) ⟶ (p' `⊗ q)
     _`⊗⟩_      : ∀ {q q'} → (p : fml +) → q ⟶ q' → (p `⊗ q) ⟶ (p `⊗ q')
-  --  `⊗-assoc   : ∀ {p q r} → (p `⊗ (q `⊗ r)) ⟶[ +? ] ((p `⊗ q) `⊗ r)
-  --  `⊗-assoc⁻¹ : ∀ {p q r} → ((p `⊗ q) `⊗ r) ⟶[ +? ] (p `⊗ (q `⊗ r))
-    `⊗-comm    : ∀ {p q} → (p `⊗ q) ⟶ (q `⊗ p)
-    `⊗-unit    : ∀ {p}   → (p `⊗ `I) ⟶ p
-  --  `⊗-unit⁻¹  : ∀ {p}   → p ⟶ (p `⊗ `I)
+    -- `⊗-assoc   : ∀ {p q r} → (p `⊗ (q `⊗ r)) ⟶[ +? ] ((p `⊗ q) `⊗ r)
+    -- `⊗-assoc⁻¹ : ∀ {p q r} → ((p `⊗ q) `⊗ r) ⟶[ +? ] (p `⊗ (q `⊗ r))
+    -- `⊗-comm    : ∀ {p q} → (p `⊗ q) ⟶ (q `⊗ p)
+    -- `⊗-unit    : ∀ {p}   → (p `⊗ `I) ⟶ p
+    -- `⊗-unit⁻¹  : ∀ {p}   → p ⟶ (p `⊗ `I)
+
+    -- _⟨`⊝_      : ∀ {p p'} → p ⟶ p' → (q : fml -) → (p `⊝ q) ⟶ (p' `⊝ q)
+    -- _`⊝⟩_      : ∀ {q q'} → (p : fml +) → q ⟶ q' → (p `⊝ q) ⟶ (p `⊝ q')
+    -- `⊝-assoc   : ∀ {p q r} → (p `⊝ (q `⊝ r)) ⟶ ((p `⊝ q) `⊝ r)
+    -- `⊝-assoc⁻¹ : ∀ {p q r} → ((p `⊝ q) `⊝ r) ⟶ (p `⊝ (q `⊝ r))
+    -- `⊝-comm    : ∀ {p q} → (p `⊝ q) ⟶ (q `⊝ p)
+    -- `⊝-unit    : ∀ {p}   → (p `⊝ `I) ⟶ p
+    -- `⊝-unit⁻¹  : ∀ {p}   → p ⟶ (p `⊝ `I)
 
     _⟨`⅋_      : ∀ {p p'} → p ⟶ p' → (q : fml -) → (p `⅋ q) ⟶ (p' `⅋ q)
     _`⅋⟩_      : ∀ {q q'} → (p : fml -) → q ⟶ q' → (p `⅋ q) ⟶ (p `⅋ q')
@@ -40,16 +53,15 @@ mutual
     `⅋-assoc⁻¹ : ∀ {p q r} → ((p `⅋ q) `⅋ r) ⟶ (p `⅋ (q `⅋ r))
     `⅋-comm    : ∀ {p q} → (p `⅋ q) ⟶ (q `⅋ p)
     `⅋-unit    : ∀ {p}   → (p `⅋ `I) ⟶ p
-    `⅋-unit⁻¹  : ∀ {p}   → p ⟶ (p `⅋ `I)
 
     _⟨`▷_      : ∀ {ρ p p'} → p ⟶[ ρ ] p' → (q : fml ρ) → (p `▷ q) ⟶[ ρ ] (p' `▷ q)
     _`▷⟩_      : ∀ {ρ q q'} → (p : fml ρ) → q ⟶[ ρ ] q' → (p `▷ q) ⟶[ ρ ] (p `▷ q')
-    `▷-assoc   : ∀ {ρ p q r} → (p `▷ (q `▷ r)) ⟶[ ρ ] ((p `▷ q) `▷ r)
-    `▷-assoc⁻¹ : ∀ {ρ p q r} → ((p `▷ q) `▷ r) ⟶[ ρ ] (p `▷ (q `▷ r))
-    `▷-runit   : ∀ {ρ p} → (p `▷ `I) ⟶[ ρ ] p
-    `▷-runit⁻¹ : ∀ {ρ p} → p ⟶[ ρ ] (p `▷ `I)
-    `▷-lunit   : ∀ {ρ p} → (`I `▷ p) ⟶[ ρ ] p
-    `▷-lunit⁻¹ : ∀ {ρ p} → p ⟶[ ρ ] (`I `▷ p)
+    -- `▷-assoc   : ∀ {ρ p q r} → (p `▷ (q `▷ r)) ⟶[ ρ ] ((p `▷ q) `▷ r)
+    -- `▷-assoc⁻¹ : ∀ {ρ p q r} → ((p `▷ q) `▷ r) ⟶[ ρ ] (p `▷ (q `▷ r))
+    -- `▷-runit   : ∀ {ρ p} → (p `▷ `I) ⟶[ ρ ] p
+    -- `▷-runit⁻¹ : ∀ {ρ p} → p ⟶[ ρ ] (p `▷ `I)
+    -- `▷-lunit   : ∀ {ρ p} → (`I `▷ p) ⟶[ ρ ] p
+    -- `▷-lunit⁻¹ : ∀ {ρ p} → p ⟶[ ρ ] (`I `▷ p)
 
     _⟨`&_      : ∀ {p p'} → p ⟶ p' → (q : fml -) → (p `& q) ⟶ (p' `& q)
     _`&⟩_      : ∀ {q q'} → (p : fml -) → q ⟶ q' → (p `& q) ⟶ (p `& q')
@@ -82,6 +94,10 @@ mutual
 ⟶[_]*-isPreorder ρ = ⟶*-isPreorder
 
 -- -- ⅋ is a monoid in the proof system
+
+`⅋-unit⁻¹ : ∀ {p} → p ⟶* (p `⅋ `I)
+`⅋-unit⁻¹ = {!   !}
+
 _⅋⟩*_ : ∀ p {q₁ q₂} → q₁ ⟶* q₂ → (p `⅋ q₁) ⟶* (p `⅋ q₂)
 p ⅋⟩* ε = ε
 p ⅋⟩* (x ∷ ϕ) = (p `⅋⟩ x) ∷ (p ⅋⟩* ϕ)
@@ -93,136 +109,136 @@ _⟨⅋*_ : ∀ {p₁ p₂} → p₁ ⟶* p₂ → ∀ q → (p₁ `⅋ q) ⟶* 
 `⅋-mono : ∀ {p₁ q₁ p₂ q₂} → (p₁ ⟶* p₂) → (q₁ ⟶* q₂) → (p₁ `⅋ q₁) ⟶* (p₂ `⅋ q₂)
 `⅋-mono {p₁}{q₁}{p₂}{q₂} f g = ⟶*-trans (p₁ ⅋⟩* g) (f ⟨⅋* q₂)
 
-`⅋-isMonoid : IsMonoid ⟶*-isPreorder _`⅋_ `I
-`⅋-isMonoid .IsMonoid.mono = `⅋-mono
-`⅋-isMonoid .IsMonoid.assoc = `⅋-assoc⁻¹ ∷ ε , `⅋-assoc ∷ ε
-`⅋-isMonoid .IsMonoid.lunit = `⅋-comm ∷ `⅋-unit ∷ ε , `⅋-unit⁻¹ ∷ `⅋-comm ∷ ε
-`⅋-isMonoid .IsMonoid.runit = `⅋-unit ∷ ε , `⅋-unit⁻¹ ∷ ε
+-- `⅋-isMonoid : IsMonoid ⟶*-isPreorder _`⅋_ `I
+-- `⅋-isMonoid .IsMonoid.mono = `⅋-mono
+-- `⅋-isMonoid .IsMonoid.assoc = `⅋-assoc⁻¹ ∷ ε , `⅋-assoc ∷ ε
+-- `⅋-isMonoid .IsMonoid.lunit = `⅋-comm ∷ `⅋-unit ∷ ε , `⅋-unit⁻¹ ∷ `⅋-comm ∷ ε
+-- `⅋-isMonoid .IsMonoid.runit = `⅋-unit ∷ ε , `⅋-unit⁻¹ ∷ ε
 
 `⅋-sym : ∀ {p q} → (p `⅋ q) ⟶* (q `⅋ p)
 `⅋-sym = `⅋-comm ∷ ε
 
--- -- ▷ is a monoid in the proof system
-_`▷⟩*_ : ∀ {ρ} p {q₁ q₂} → q₁ ⟶[ ρ ]* q₂ → (p `▷ q₁) ⟶[ ρ ]* (p `▷ q₂)
-p `▷⟩* ε = ε
-p `▷⟩* (x ∷ ϕ) = (p `▷⟩ x) ∷ (p `▷⟩* ϕ)
+-- -- -- ▷ is a monoid in the proof system
+-- _`▷⟩*_ : ∀ {ρ} p {q₁ q₂} → q₁ ⟶[ ρ ]* q₂ → (p `▷ q₁) ⟶[ ρ ]* (p `▷ q₂)
+-- p `▷⟩* ε = ε
+-- p `▷⟩* (x ∷ ϕ) = (p `▷⟩ x) ∷ (p `▷⟩* ϕ)
 
-_⟨`▷*_ : ∀ {ρ p₁ p₂} → p₁ ⟶[ ρ ]* p₂ → ∀ q → (p₁ `▷ q) ⟶[ ρ ]* (p₂ `▷ q)
-ε ⟨`▷* q = ε
-(x ∷ ϕ) ⟨`▷* q = (x ⟨`▷ q) ∷ (ϕ ⟨`▷* q)
+-- _⟨`▷*_ : ∀ {ρ p₁ p₂} → p₁ ⟶[ ρ ]* p₂ → ∀ q → (p₁ `▷ q) ⟶[ ρ ]* (p₂ `▷ q)
+-- ε ⟨`▷* q = ε
+-- (x ∷ ϕ) ⟨`▷* q = (x ⟨`▷ q) ∷ (ϕ ⟨`▷* q)
 
-`▷-mono : ∀ {ρ p₁ q₁ p₂ q₂} → (p₁ ⟶[ ρ ]* p₂) → (q₁ ⟶[ ρ ]* q₂) → (p₁ `▷ q₁) ⟶[ ρ ]* (p₂ `▷ q₂)
-`▷-mono {ρ}{p₁}{q₁}{p₂}{q₂} f g = ⟶*-trans (p₁ `▷⟩* g) (f ⟨`▷* q₂)
+-- `▷-mono : ∀ {ρ p₁ q₁ p₂ q₂} → (p₁ ⟶[ ρ ]* p₂) → (q₁ ⟶[ ρ ]* q₂) → (p₁ `▷ q₁) ⟶[ ρ ]* (p₂ `▷ q₂)
+-- `▷-mono {ρ}{p₁}{q₁}{p₂}{q₂} f g = ⟶*-trans (p₁ `▷⟩* g) (f ⟨`▷* q₂)
 
-`▷-isMonoid : ∀ {ρ} → IsMonoid ⟶[ ρ ]*-isPreorder _`▷_ `I
-`▷-isMonoid .IsMonoid.mono = `▷-mono
-`▷-isMonoid .IsMonoid.assoc = `▷-assoc⁻¹ ∷ ε , `▷-assoc ∷ ε
-`▷-isMonoid .IsMonoid.lunit = `▷-lunit ∷ ε , `▷-lunit⁻¹ ∷ ε
-`▷-isMonoid .IsMonoid.runit = `▷-runit ∷ ε , `▷-runit⁻¹ ∷ ε
+-- `▷-isMonoid : ∀ {ρ} → IsMonoid ⟶[ ρ ]*-isPreorder _`▷_ `I
+-- `▷-isMonoid .IsMonoid.mono = `▷-mono
+-- `▷-isMonoid .IsMonoid.assoc = `▷-assoc⁻¹ ∷ ε , `▷-assoc ∷ ε
+-- `▷-isMonoid .IsMonoid.lunit = `▷-lunit ∷ ε , `▷-lunit⁻¹ ∷ ε
+-- `▷-isMonoid .IsMonoid.runit = `▷-runit ∷ ε , `▷-runit⁻¹ ∷ ε
 
-⅋-`▷-isDuoidal : IsDuoidal ⟶*-isPreorder `⅋-isMonoid `▷-isMonoid
-⅋-`▷-isDuoidal .IsDuoidal.exchange = `sequence ∷ ε
-⅋-`▷-isDuoidal .IsDuoidal.mu = `⅋-unit ∷ ε
+-- ⅋-`▷-isDuoidal : IsDuoidal ⟶*-isPreorder `⅋-isMonoid `▷-isMonoid
+-- ⅋-`▷-isDuoidal .IsDuoidal.exchange = `sequence ∷ ε
+-- ⅋-`▷-isDuoidal .IsDuoidal.mu = `⅋-unit ∷ ε
 
--- & is a monotone operator
-_`&⟩*_ : ∀ p {q₁ q₂} → q₁ ⟶* q₂ → (p `& q₁) ⟶* (p `& q₂)
-p `&⟩* ε = ε
-p `&⟩* (x ∷ ϕ) = (p `&⟩ x) ∷ (p `&⟩* ϕ)
+-- -- & is a monotone operator
+-- _`&⟩*_ : ∀ p {q₁ q₂} → q₁ ⟶* q₂ → (p `& q₁) ⟶* (p `& q₂)
+-- p `&⟩* ε = ε
+-- p `&⟩* (x ∷ ϕ) = (p `&⟩ x) ∷ (p `&⟩* ϕ)
 
-_⟨`&*_ : ∀ {p₁ p₂} → p₁ ⟶* p₂ → ∀ q → (p₁ `& q) ⟶* (p₂ `& q)
-ε ⟨`&* q = ε
-(x ∷ ϕ) ⟨`&* q = (x ⟨`& q) ∷ (ϕ ⟨`&* q)
+-- _⟨`&*_ : ∀ {p₁ p₂} → p₁ ⟶* p₂ → ∀ q → (p₁ `& q) ⟶* (p₂ `& q)
+-- ε ⟨`&* q = ε
+-- (x ∷ ϕ) ⟨`&* q = (x ⟨`& q) ∷ (ϕ ⟨`&* q)
 
-`&-mono : ∀ {p₁ q₁ p₂ q₂} → (p₁ ⟶* p₂) → (q₁ ⟶* q₂) → (p₁ `& q₁) ⟶* (p₂ `& q₂)
-`&-mono {p₁}{q₁}{p₂}{q₂} f g = ⟶*-trans (p₁ `&⟩* g) (f ⟨`&* q₂)
+-- `&-mono : ∀ {p₁ q₁ p₂ q₂} → (p₁ ⟶* p₂) → (q₁ ⟶* q₂) → (p₁ `& q₁) ⟶* (p₂ `& q₂)
+-- `&-mono {p₁}{q₁}{p₂}{q₂} f g = ⟶*-trans (p₁ `&⟩* g) (f ⟨`&* q₂)
 
--- _⊗_ is a monotone operator
-_`⊗⟩*_ : ∀ p {q₁ q₂} → q₁ ⟶* q₂ → (p `⊗ q₁) ⟶* (p `⊗ q₂)
-p `⊗⟩* ε = ε
-p `⊗⟩* (x ∷ ϕ) = (p `⊗⟩ x) ∷ (p `⊗⟩* ϕ)
+-- -- _⊗_ is a monotone operator
+-- _`⊗⟩*_ : ∀ p {q₁ q₂} → q₁ ⟶* q₂ → (p `⊗ q₁) ⟶* (p `⊗ q₂)
+-- p `⊗⟩* ε = ε
+-- p `⊗⟩* (x ∷ ϕ) = (p `⊗⟩ x) ∷ (p `⊗⟩* ϕ)
 
--- _⟨⊗*_ : ∀ {p₁ p₂} → p₁ ⟶* p₂ → ∀ q → (p₁ ⊗ q) ⟶* (p₂ ⊗ q)
--- ε ⟨⊗* q = ε
--- (x ∷ ϕ) ⟨⊗* q = (x ⟨⊗ q) ∷ (ϕ ⟨⊗* q)
+-- -- _⟨⊗*_ : ∀ {p₁ p₂} → p₁ ⟶* p₂ → ∀ q → (p₁ ⊗ q) ⟶* (p₂ ⊗ q)
+-- -- ε ⟨⊗* q = ε
+-- -- (x ∷ ϕ) ⟨⊗* q = (x ⟨⊗ q) ∷ (ϕ ⟨⊗* q)
 
-------------------------------------------------------------------------------
--- Construct the syntactic model from presheaves and chu. We can turn
--- MAV into a *-autonomous category with finite products and
--- coproducts in such a way that we can deduce cut-elimination is
--- admissible.
+-- ------------------------------------------------------------------------------
+-- -- Construct the syntactic model from presheaves and chu. We can turn
+-- -- MAV into a *-autonomous category with finite products and
+-- -- coproducts in such a way that we can deduce cut-elimination is
+-- -- admissible.
 
-import presheaf
-import chu
-module P {ρ} = presheaf ⟶[ ρ ]*-isPreorder
-module M = P.Monoid `⅋-isMonoid
-module S = P.sheaf _`&_ `&-mono
-module MS = S.SMonoid2 `⅋-isMonoid `⅋-sym (`external ∷ ε)
-module M▷ = S.SMonoid1 `▷-isMonoid (`medial ∷ ε) (`tidy ∷ ε)
-module D = S.SDuoidal `⅋-isMonoid `⅋-sym (`external ∷ ε) `▷-isMonoid (`medial ∷ ε) (`tidy ∷ ε) ⅋-`▷-isDuoidal
+-- import presheaf
+-- import chu
+-- module P {ρ} = presheaf ⟶[ ρ ]*-isPreorder
+-- module M = P.Monoid `⅋-isMonoid
+-- module S = P.sheaf _`&_ `&-mono
+-- module MS = S.SMonoid2 `⅋-isMonoid `⅋-sym (`external ∷ ε)
+-- module M▷ = S.SMonoid1 `▷-isMonoid (`medial ∷ ε) (`tidy ∷ ε)
+-- module D = S.SDuoidal `⅋-isMonoid `⅋-sym (`external ∷ ε) `▷-isMonoid (`medial ∷ ε) (`tidy ∷ ε) ⅋-`▷-isDuoidal
 
-open S._≤S_
-open S.Sheaf
+-- open S._≤S_
+-- open S.Sheaf
 
--- The units of the two monoids are equal (thanks to the tidy rule)
-units-iso : MS.I S.≃S M▷.I
-units-iso .proj₁ .*≤S* x (t , x≤t) = M▷.I .S≤-closed x≤t (M▷.I .Sclosed t)
-units-iso .proj₂ .*≤S* x x≤I = S.lf (x , x≤I) , ε
+-- -- The units of the two monoids are equal (thanks to the tidy rule)
+-- units-iso : MS.I S.≃S M▷.I
+-- units-iso .proj₁ .*≤S* x (t , x≤t) = M▷.I .S≤-closed x≤t (M▷.I .Sclosed t)
+-- units-iso .proj₂ .*≤S* x x≤I = S.lf (x , x≤I) , ε
 
-open chu.Construction
-    S.≤S-isPreorder
-    MS.⊗-isMonoid MS.⊗-sym MS.⊸-isClosure
-    S.∧S-isMeet S.∨S-isJoin
-    MS.I
-    renaming (_⊗_ to _⟦⊗⟧_;
-              _⅋_ to _⟦⅋⟧_;
-              _&_ to _⟦&⟧_;
-              _⊕_ to _⟦⊕⟧_;
-              I to ⟦I⟧;
-              ¬ to ⟦¬⟧) hiding (⅋-mono; ⅋-sym)
+-- open chu.Construction
+--     S.≤S-isPreorder
+--     MS.⊗-isMonoid MS.⊗-sym MS.⊸-isClosure
+--     S.∧S-isMeet S.∨S-isJoin
+--     MS.I
+--     renaming (_⊗_ to _⟦⊗⟧_;
+--               _⅋_ to _⟦⅋⟧_;
+--               _&_ to _⟦&⟧_;
+--               _⊕_ to _⟦⊕⟧_;
+--               I to ⟦I⟧;
+--               ¬ to ⟦¬⟧) hiding (⅋-mono; ⅋-sym)
 
-open SelfDual M▷.▷-isMonoid
-        (S.≤S-trans (M▷.▷-mono (D.units-iso .proj₁) S.≤S-refl) (M▷.▷-lunit .proj₁))
-        (D.units-iso .proj₂)
-        D.⊗-▷-isDuoidal
+-- open SelfDual M▷.▷-isMonoid
+--         (S.≤S-trans (M▷.▷-mono (D.units-iso .proj₁) S.≤S-refl) (M▷.▷-lunit .proj₁))
+--         (D.units-iso .proj₂)
+--         D.⊗-▷-isDuoidal
 
-open Chu
-open P._≤P_
+-- open Chu
+-- open P._≤P_
 
-open import smav At using (MAVModel; module interpretation; test; test-id) renaming (_⟶*_ to _s⟶*_)
+-- open import smav At using (MAVModel; module interpretation; test; test-id) renaming (_⟶*_ to _s⟶*_)
 
-Chu-mix : ⟦I⟧ ≅ ⟦¬⟧ ⟦I⟧
-Chu-mix .proj₁ .chu.Construction._==>_.fpos = S.≤S-refl
-Chu-mix .proj₁ .chu.Construction._==>_.fneg = S.≤S-refl
-Chu-mix .proj₂ .chu.Construction._==>_.fpos = S.≤S-refl
-Chu-mix .proj₂ .chu.Construction._==>_.fneg = S.≤S-refl
+-- Chu-mix : ⟦I⟧ ≅ ⟦¬⟧ ⟦I⟧
+-- Chu-mix .proj₁ .chu.Construction._==>_.fpos = S.≤S-refl
+-- Chu-mix .proj₁ .chu.Construction._==>_.fneg = S.≤S-refl
+-- Chu-mix .proj₂ .chu.Construction._==>_.fpos = S.≤S-refl
+-- Chu-mix .proj₂ .chu.Construction._==>_.fneg = S.≤S-refl
 
-I-eq-J : ⟦I⟧ ≅ J
-I-eq-J .proj₁ .chu.Construction._==>_.fpos = units-iso .proj₁
-I-eq-J .proj₁ .chu.Construction._==>_.fneg = units-iso .proj₂
-I-eq-J .proj₂ .chu.Construction._==>_.fpos = units-iso .proj₂
-I-eq-J .proj₂ .chu.Construction._==>_.fneg = units-iso .proj₁
+-- I-eq-J : ⟦I⟧ ≅ J
+-- I-eq-J .proj₁ .chu.Construction._==>_.fpos = units-iso .proj₁
+-- I-eq-J .proj₁ .chu.Construction._==>_.fneg = units-iso .proj₂
+-- I-eq-J .proj₂ .chu.Construction._==>_.fpos = units-iso .proj₂
+-- I-eq-J .proj₂ .chu.Construction._==>_.fneg = units-iso .proj₁
 
-ChuModel : MAVModel (suc (suc 0ℓ)) 0ℓ
-ChuModel .MAVModel.Carrier = Chu
-ChuModel .MAVModel._≤_ = _==>_
-ChuModel .MAVModel.¬ = ⟦¬⟧
-ChuModel .MAVModel.I = ⟦I⟧
-ChuModel .MAVModel.J = J
-ChuModel .MAVModel._⊗_ = _⟦⊗⟧_
-ChuModel .MAVModel._▷_ = _⍮_
-ChuModel .MAVModel._&_ = _⟦&⟧_
-ChuModel .MAVModel.≤-isPreorder = ==>-isPreorder
-ChuModel .MAVModel.⊗-isMonoid = ⊗-isMonoid
-ChuModel .MAVModel.⊗-sym = ⊗-sym
-ChuModel .MAVModel.⊗-*aut = ⊗-isStarAutonomous
-ChuModel .MAVModel.mix = Chu-mix
-ChuModel .MAVModel.&-isMeet = &-isMeet
-ChuModel .MAVModel.▷-isMonoid = ⍮-isMonoid
-ChuModel .MAVModel.I-eq-J = I-eq-J
-ChuModel .MAVModel.▷-self-dual = self-dual
-ChuModel .MAVModel.⊗-▷-isDuoidal = ⊗-⍮-isDuoidal
+-- ChuModel : MAVModel (suc (suc 0ℓ)) 0ℓ
+-- ChuModel .MAVModel.Carrier = Chu
+-- ChuModel .MAVModel._≤_ = _==>_
+-- ChuModel .MAVModel.¬ = ⟦¬⟧
+-- ChuModel .MAVModel.I = ⟦I⟧
+-- ChuModel .MAVModel.J = J
+-- ChuModel .MAVModel._⊗_ = _⟦⊗⟧_
+-- ChuModel .MAVModel._▷_ = _⍮_
+-- ChuModel .MAVModel._&_ = _⟦&⟧_
+-- ChuModel .MAVModel.≤-isPreorder = ==>-isPreorder
+-- ChuModel .MAVModel.⊗-isMonoid = ⊗-isMonoid
+-- ChuModel .MAVModel.⊗-sym = ⊗-sym
+-- ChuModel .MAVModel.⊗-*aut = ⊗-isStarAutonomous
+-- ChuModel .MAVModel.mix = Chu-mix
+-- ChuModel .MAVModel.&-isMeet = &-isMeet
+-- ChuModel .MAVModel.▷-isMonoid = ⍮-isMonoid
+-- ChuModel .MAVModel.I-eq-J = I-eq-J
+-- ChuModel .MAVModel.▷-self-dual = self-dual
+-- ChuModel .MAVModel.⊗-▷-isDuoidal = ⊗-⍮-isDuoidal
 
-_>>>_ = ⟶*-trans
+-- _>>>_ = ⟶*-trans
 
 -- -- The atom interaction law in PreSheaves
 -- atom-int : ∀ a → (P.η (-at a) M.• P.η (+at a)) P.≤P P.η `I
